@@ -1,201 +1,142 @@
-// ClientDashboard.js - Updated with backend integration
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Search, Plus, Star, Clock, MapPin, Phone, MessageCircle,
   Calendar, DollarSign, CheckCircle, AlertCircle, Filter,
   User, Bookmark, History, Settings, Edit3, TrendingUp,
-  Home, Briefcase, Award, Heart, Trash2
+  Home, Briefcase, Award
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const ClientDashboard = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // State with proper initialization
-  const [stats, setStats] = useState({
-    totalBookings: 0,
-    activeBookings: 0,
-    completedBookings: 0,
-    savedContractors: 0,
-    totalSpent: 0,
-    averageRating: 0
+  const [stats] = useState({
+    totalBookings: 12,
+    activeBookings: 2,
+    completedBookings: 8,
+    savedContractors: 6,
+    totalSpent: 2850,
+    averageRating: 4.7
   });
 
-  const [recentBookings, setRecentBookings] = useState([]);
-  const [savedContractors, setSavedContractors] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
-  const [profileData, setProfileData] = useState({
-    propertyType: '',
-    budget: '',
-    notifications: {
-      booking_updates: true,
-      new_messages: true,
-      payment_reminders: true,
-      recommendations: true,
-      promotions: false
+  const [recentBookings] = useState([
+    {
+      id: 1,
+      contractor: { 
+        name: 'John Smith', 
+        avatar: 'JS', 
+        rating: 4.8, 
+        service: 'Plumbing',
+        phone: '+1 (555) 123-4567'
+      },
+      status: 'in_progress',
+      scheduledDate: '2024-01-25',
+      description: 'Kitchen sink repair and faucet installation',
+      price: 150,
+      estimatedDuration: '2-3 hours',
+      location: 'Kitchen'
+    },
+    {
+      id: 2,
+      contractor: { 
+        name: 'Sarah Wilson', 
+        avatar: 'SW', 
+        rating: 4.9, 
+        service: 'Electrical',
+        phone: '+1 (555) 987-6543'
+      },
+      status: 'completed',
+      scheduledDate: '2024-01-20',
+      description: 'Ceiling fan installation in living room',
+      price: 200,
+      estimatedDuration: '1-2 hours',
+      location: 'Living Room'
+    },
+    {
+      id: 3,
+      contractor: { 
+        name: 'Mike Johnson', 
+        avatar: 'MJ', 
+        rating: 4.7, 
+        service: 'Painting',
+        phone: '+1 (555) 456-7890'
+      },
+      status: 'scheduled',
+      scheduledDate: '2024-01-28',
+      description: 'Interior painting - living room and bedroom',
+      price: 800,
+      estimatedDuration: '2 days',
+      location: 'Multiple Rooms'
     }
-  });
+  ]);
 
-  // API Base URL
-  const API_BASE_URL = 'http://localhost:5000/api';
-
-  // Fetch dashboard data
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-
-      // Fetch all data in parallel
-      const [statsRes, bookingsRes, savedRes, recommendationsRes, profileRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/client/stats`, { headers }),
-        fetch(`${API_BASE_URL}/client/bookings`, { headers }),
-        fetch(`${API_BASE_URL}/client/saved-contractors`, { headers }),
-        fetch(`${API_BASE_URL}/client/recommendations`, { headers }),
-        fetch(`${API_BASE_URL}/clien`t/profile`, { headers })
-      ]);
-
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setStats(statsData);
-      }
-
-      if (bookingsRes.ok) {
-        const bookingsData = await bookingsRes.json();
-        setRecentBookings(bookingsData);
-      }
-
-      if (savedRes.ok) {
-        const savedData = await savedRes.json();
-        setSavedContractors(savedData);
-      }
-
-      if (recommendationsRes.ok) {
-        const recommendationsData = await recommendationsRes.json();
-        setRecommendations(recommendationsData);
-      }
-
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
-        setProfileData(profileData);
-      }
-
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setError('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
+  const [savedContractors] = useState([
+    {
+      id: 1,
+      name: 'David Brown',
+      avatar: 'DB',
+      rating: 4.9,
+      services: ['Carpentry', 'Home Repairs'],
+      location: 'Downtown',
+      hourlyRate: 75,
+      responseTime: '1 hour',
+      completedJobs: 156,
+      verified: true
+    },
+    {
+      id: 2,
+      name: 'Lisa Garcia',
+      avatar: 'LG',
+      rating: 4.8,
+      services: ['Cleaning', 'Organization'],
+      location: 'Midtown',
+      hourlyRate: 45,
+      responseTime: '30 mins',
+      completedJobs: 203,
+      verified: true
+    },
+    {
+      id: 3,
+      name: 'Robert Chen',
+      avatar: 'RC',
+      rating: 4.7,
+      services: ['HVAC', 'Maintenance'],
+      location: 'Uptown',
+      hourlyRate: 85,
+      responseTime: '2 hours',
+      completedJobs: 89,
+      verified: true
     }
-  };
+  ]);
 
-  // Handle booking actions
-  const handleBookingAction = async (bookingId, action) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/${action}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        fetchDashboardData(); // Refresh data
-        if (action === 'message') {
-          navigate(`/messages/${bookingId}`);
-        } else if (action === 'call') {
-          // Handle call functionality
-          alert('Calling contractor...');
-        }
-      }
-    } catch (error) {
-      console.error('Error performing booking action:', error);
-      setError('Failed to perform action');
+  const [recommendations] = useState([
+    {
+      id: 1,
+      name: 'Anna Thompson',
+      avatar: 'AT',
+      rating: 4.9,
+      service: 'Interior Design',
+      location: 'Downtown',
+      hourlyRate: 120,
+      specialties: ['Modern Design', 'Space Planning'],
+      availability: 'Available now',
+      completedJobs: 87
+    },
+    {
+      id: 2,
+      name: 'Carlos Rivera',
+      avatar: 'CR',
+      rating: 4.8,
+      service: 'Landscaping',
+      location: 'Suburbs',
+      hourlyRate: 60,
+      specialties: ['Garden Design', 'Tree Care'],
+      availability: 'Available next week',
+      completedJobs: 124
     }
-  };
-
-  // Handle contractor actions
-  const handleContractorAction = async (contractorId, action) => {
-    try {
-      const token = localStorage.getItem('token');
-      let url, method;
-
-      switch (action) {
-        case 'save':
-          url = `${API_BASE_URL}/client/saved-contractors`;
-          method = 'POST';
-          break;
-        case 'unsave':
-          url = `${API_BASE_URL}/client/saved-contractors/${contractorId}`;
-          method = 'DELETE';
-          break;
-        case 'contact':
-          navigate(`/contractor/${contractorId}/contact`);
-          return;
-        case 'view':
-          navigate(`/contractor/${contractorId}`);
-          return;
-        default:
-          return;
-      }
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: action === 'save' ? JSON.stringify({ contractorId }) : undefined
-      });
-
-      if (response.ok) {
-        fetchDashboardData(); // Refresh data
-      }
-    } catch (error) {
-      console.error('Error performing contractor action:', error);
-      setError('Failed to perform action');
-    }
-  };
-
-  // Handle profile updates
-  const handleProfileUpdate = async (field, value) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/client/profile`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ [field]: value })
-      });
-
-      if (response.ok) {
-        setProfileData(prev => ({ ...prev, [field]: value }));
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      setError('Failed to update profile');
-    }
-  };
-
-  // Handle new booking/job posting
-  const handleNewBooking = () => {
-    navigate('/post-job');
-  };
+  ]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -262,9 +203,9 @@ const ClientDashboard = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <button
-          onClick={() => navigate('/search')}
-          className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 hover:border-blue-200 group text-left w-full"
+        <Link
+          to="/search"
+          className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 hover:border-blue-200 group"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
@@ -277,12 +218,9 @@ const ClientDashboard = () => {
           <p className="text-sm text-gray-600 mt-1">
             Search for verified professionals
           </p>
-        </button>
+        </Link>
 
-        <button 
-          onClick={handleNewBooking}
-          className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 hover:border-green-200 group text-left w-full"
-        >
+        <button className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 hover:border-green-200 group text-left">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
               <Plus className="h-6 w-6 text-green-600" />
@@ -296,9 +234,9 @@ const ClientDashboard = () => {
           </p>
         </button>
 
-        <button
-          onClick={() => setActiveTab('bookings')}
-          className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 hover:border-purple-200 group text-left w-full"
+        <Link
+          to="/bookings"
+          className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 hover:border-purple-200 group"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
@@ -311,11 +249,11 @@ const ClientDashboard = () => {
           <p className="text-sm text-gray-600 mt-1">
             View all your bookings
           </p>
-        </button>
+        </Link>
 
-        <button
-          onClick={() => setActiveTab('profile')}
-          className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 hover:border-orange-200 group text-left w-full"
+        <Link
+          to="/profile"
+          className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100 hover:border-orange-200 group"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
@@ -328,7 +266,7 @@ const ClientDashboard = () => {
           <p className="text-sm text-gray-600 mt-1">
             Update your preferences
           </p>
-        </button>
+        </Link>
       </div>
 
       {/* Stats Cards */}
@@ -345,7 +283,7 @@ const ClientDashboard = () => {
           </div>
           <div className="mt-2 flex items-center text-sm text-green-600">
             <TrendingUp className="h-4 w-4 mr-1" />
-            +{stats.newBookingsThisMonth || 0} this month
+            +2 this month
           </div>
         </div>
 
@@ -353,14 +291,14 @@ const ClientDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Spent</p>
-              <p className="text-2xl font-bold text-gray-900">${stats.totalSpent?.toLocaleString() || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">${stats.totalSpent.toLocaleString()}</p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <DollarSign className="h-6 w-6 text-green-600" />
             </div>
           </div>
           <div className="mt-2 text-sm text-gray-600">
-            Average: ${stats.totalBookings > 0 ? Math.round(stats.totalSpent / stats.totalBookings) : 0}
+            Average: ${Math.round(stats.totalSpent / stats.totalBookings)}
           </div>
         </div>
 
@@ -368,7 +306,7 @@ const ClientDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Average Rating</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.averageRating || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.averageRating}</p>
             </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
               <Star className="h-6 w-6 text-yellow-600" />
@@ -400,12 +338,9 @@ const ClientDashboard = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Recent Bookings</h2>
-            <button 
-              onClick={() => setActiveTab('bookings')}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-            >
+            <Link to="/bookings" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
               View All
-            </button>
+            </Link>
           </div>
 
           <div className="space-y-4">
@@ -414,19 +349,19 @@ const ClientDashboard = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-start space-x-3">
                     <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                      {booking.contractor?.avatar || booking.contractor?.name?.charAt(0) || 'C'}
+                      {booking.contractor.avatar}
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">{booking.description}</h3>
                       <p className="text-sm text-gray-600">
-                        {booking.contractor?.name} • {booking.contractor?.service}
+                        {booking.contractor.name} • {booking.contractor.service}
                       </p>
                       <p className="text-sm text-gray-500">{booking.location}</p>
                     </div>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${getStatusColor(booking.status)}`}>
                     {getStatusIcon(booking.status)}
-                    <span className="ml-1 capitalize">{booking.status?.replace('_', ' ')}</span>
+                    <span className="ml-1 capitalize">{booking.status.replace('_', ' ')}</span>
                   </span>
                 </div>
 
@@ -437,16 +372,10 @@ const ClientDashboard = () => {
                   <div className="flex items-center space-x-4">
                     <span className="font-semibold text-gray-900">${booking.price}</span>
                     <div className="flex space-x-2">
-                      <button 
-                        onClick={() => handleBookingAction(booking.id, 'message')}
-                        className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                      >
+                      <button className="p-1 text-gray-400 hover:text-blue-600 transition-colors">
                         <MessageCircle className="h-4 w-4" />
                       </button>
-                      <button 
-                        onClick={() => handleBookingAction(booking.id, 'call')}
-                        className="p-1 text-gray-400 hover:text-green-600 transition-colors"
-                      >
+                      <button className="p-1 text-gray-400 hover:text-green-600 transition-colors">
                         <Phone className="h-4 w-4" />
                       </button>
                     </div>
@@ -461,12 +390,9 @@ const ClientDashboard = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Recommended for You</h2>
-            <button 
-              onClick={() => navigate('/search')}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-            >
+            <Link to="/search" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
               View All
-            </button>
+            </Link>
           </div>
 
           <div className="space-y-4">
@@ -475,7 +401,7 @@ const ClientDashboard = () => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-start space-x-3">
                     <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                      {contractor.avatar || contractor.name?.charAt(0) || 'C'}
+                      {contractor.avatar}
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">{contractor.name}</h3>
@@ -498,23 +424,17 @@ const ClientDashboard = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap gap-1">
-                    {contractor.specialties?.slice(0, 2).map((specialty, index) => (
+                    {contractor.specialties.slice(0, 2).map((specialty, index) => (
                       <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                         {specialty}
                       </span>
                     ))}
                   </div>
                   <div className="flex space-x-2">
-                    <button 
-                      onClick={() => handleContractorAction(contractor.id, 'save')}
-                      className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                    >
+                    <button className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-colors">
                       Save
                     </button>
-                    <button 
-                      onClick={() => handleContractorAction(contractor.id, 'contact')}
-                      className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                    >
+                    <button className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                       Contact
                     </button>
                   </div>
@@ -539,10 +459,7 @@ const ClientDashboard = () => {
             <option>Completed</option>
             <option>Cancelled</option>
           </select>
-          <button 
-            onClick={handleNewBooking}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center"
-          >
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center">
             <Plus className="h-4 w-4 mr-2" />
             New Booking
           </button>
@@ -555,11 +472,11 @@ const ClientDashboard = () => {
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {booking.contractor?.avatar || booking.contractor?.name?.charAt(0) || 'C'}
+                  {booking.contractor.avatar}
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{booking.description}</h3>
-                  <p className="text-gray-600">{booking.contractor?.name} • {booking.contractor?.service}</p>
+                  <p className="text-gray-600">{booking.contractor.name} • {booking.contractor.service}</p>
                   <div className="flex items-center mt-2 space-x-4 text-sm text-gray-600">
                     <span className="flex items-center">
                       <Calendar className="h-4 w-4 mr-1" />
@@ -580,7 +497,7 @@ const ClientDashboard = () => {
               <div className="text-right">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center ${getStatusColor(booking.status)}`}>
                   {getStatusIcon(booking.status)}
-                  <span className="ml-1 capitalize">{booking.status?.replace('_', ' ')}</span>
+                  <span className="ml-1 capitalize">{booking.status.replace('_', ' ')}</span>
                 </span>
                 <div className="text-lg font-bold text-gray-900 mt-2">${booking.price}</div>
               </div>
@@ -589,31 +506,22 @@ const ClientDashboard = () => {
             <div className="flex items-center justify-between pt-4 border-t border-gray-200">
               <div className="flex items-center space-x-2">
                 <div className="flex">
-                  {renderStars(booking.contractor?.rating || 0)}
+                  {renderStars(booking.contractor.rating)}
                 </div>
-                <span className="text-sm text-gray-600">{booking.contractor?.rating || 0}</span>
+                <span className="text-sm text-gray-600">{booking.contractor.rating}</span>
               </div>
               
               <div className="flex space-x-3">
-                <button 
-                  onClick={() => handleBookingAction(booking.id, 'message')}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
-                >
+                <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Message
                 </button>
-                <button 
-                  onClick={() => handleBookingAction(booking.id, 'call')}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center"
-                >
+                <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
                   <Phone className="h-4 w-4 mr-2" />
                   Call
                 </button>
                 {booking.status === 'completed' && (
-                  <button 
-                    onClick={() => navigate(`/review/${booking.id}`)}
-                    className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
+                  <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     Leave Review
                   </button>
                 )}
@@ -629,12 +537,9 @@ const ClientDashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Saved Contractors</h2>
-        <button 
-          onClick={() => navigate('/search')}
-          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-        >
+        <Link to="/search" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
           Find More
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -643,7 +548,7 @@ const ClientDashboard = () => {
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-start space-x-3">
                 <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {contractor.avatar || contractor.name?.charAt(0) || 'C'}
+                  {contractor.avatar}
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 flex items-center">
@@ -660,17 +565,14 @@ const ClientDashboard = () => {
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={() => handleContractorAction(contractor.id, 'unsave')}
-                className="text-red-500 hover:text-red-700 transition-colors"
-              >
-                <Heart className="h-5 w-5 fill-current" />
+              <button className="text-red-500 hover:text-red-700 transition-colors">
+                <Bookmark className="h-5 w-5 fill-current" />
               </button>
             </div>
 
             <div className="mb-4">
               <div className="flex flex-wrap gap-1 mb-2">
-                {contractor.services?.map((service, index) => (
+                {contractor.services.map((service, index) => (
                   <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                     {service}
                   </span>
@@ -693,16 +595,10 @@ const ClientDashboard = () => {
             </div>
 
             <div className="flex space-x-2">
-              <button 
-                onClick={() => handleContractorAction(contractor.id, 'view')}
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
+              <button className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                 View Profile
               </button>
-              <button 
-                onClick={() => handleContractorAction(contractor.id, 'contact')}
-                className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
+              <button className="flex-1 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 Contact
               </button>
             </div>
@@ -716,13 +612,10 @@ const ClientDashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Profile Settings</h2>
-        <button 
-          onClick={() => navigate('/profile/setup')}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center"
-        >
+        <Link to="/profile/setup" className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center">
           <Edit3 className="h-4 w-4 mr-2" />
           Edit Profile
-        </button>
+        </Link>
       </div>
 
       {/* Personal Information */}
@@ -746,33 +639,12 @@ const ClientDashboard = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Property Type
             </label>
-            <select 
-              value={profileData.propertyType}
-              onChange={(e) => handleProfileUpdate('propertyType', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select property type</option>
-              <option value="apartment">Apartment</option>
-              <option value="house">House</option>
-              <option value="condo">Condo</option>
-              <option value="townhouse">Townhouse</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Budget Range
-            </label>
-            <select 
-              value={profileData.budget}
-              onChange={(e) => handleProfileUpdate('budget', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select budget range</option>
-              <option value="0-100">$0 - $100</option>
-              <option value="100-500">$100 - $500</option>
-              <option value="500-1000">$500 - $1,000</option>
-              <option value="1000-5000">$1,000 - $5,000</option>
-              <option value="5000+">$5,000+</option>
+            <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option>$0 - $100</option>
+              <option>$100 - $500</option>
+              <option>$500 - $1,000</option>
+              <option>$1,000 - $5,000</option>
+              <option>$5,000+</option>
             </select>
           </div>
         </div>
@@ -792,11 +664,7 @@ const ClientDashboard = () => {
             <label key={setting.id} className="flex items-center">
               <input
                 type="checkbox"
-                checked={profileData.notifications?.[setting.id] || false}
-                onChange={(e) => handleProfileUpdate('notifications', {
-                  ...profileData.notifications,
-                  [setting.id]: e.target.checked
-                })}
+                defaultChecked={setting.id !== 'promotions'}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
               />
               <span className="text-gray-700">{setting.label}</span>
@@ -879,35 +747,6 @@ const ClientDashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-gray-900 font-semibold mb-2">Error loading dashboard</p>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={fetchDashboardData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -928,3 +767,4 @@ const ClientDashboard = () => {
 };
 
 export default ClientDashboard;
+            
